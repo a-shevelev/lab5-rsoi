@@ -82,4 +82,5 @@ CREATE TABLE IF NOT EXISTS rating
     );
 
 INSERT INTO rating (username, stars)
-VALUES ('Test Max', 75);
+VALUES ('Test Max', 75),
+       ('auth0|694550e3427eb2c33e5671d4', 75);

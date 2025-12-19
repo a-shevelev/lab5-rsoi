@@ -11,7 +11,6 @@ jobs:
         with:
           fetch-depth: 0
 
-
       - uses: docker/setup-buildx-action@v2
 
       - uses: docker/setup-buildx-action@v2
@@ -71,7 +70,7 @@ jobs:
           yc container registry configure-docker
 
       - name: Get kube credentials
-        run: yc managed-kubernetes cluster get-credentials lab4-rsoi --external
+        run: yc managed-kubernetes cluster get-credentials lab5-rsoi --external
 
       - name: Deploy to Kubernetes
         run: |
@@ -165,6 +164,7 @@ jobs:
             rm -f port-forward.log
           fi
 
+      # TODO build, publish to docker hub, deploy to k8s
 
 #      - name: Run API Tests
 #        uses: matt-ball/newman-action@master
