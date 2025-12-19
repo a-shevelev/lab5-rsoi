@@ -15,24 +15,66 @@ jobs:
 
       # TODO build, publish to docker hub, deploy to k8s
 
+#      - name: Run API Tests
+#        uses: matt-ball/newman-action@master
+#        with:
+#          collection: <variant>/postman/collection.json
+#          environment: <variant>/postman/environment.json
+#          delayRequest: 100
+#          reporters: '[ "cli" ]'
+#
+#      - uses: education/autograding@v1
+#        id: autograder
+#        continue-on-error: true
+#
+#      - name: Github auto grader mark
+#        uses: Romanow/google-sheet-autograder-marker@v1.0
+#        with:
+#          google_token: ${{secrets.GOOGLE_API_KEY}}
+#          sheet_id: "1xkgjUX6Qmk7rdJG-QPOToav-HWWtthJjnShIKnw3oIY"
+#          homework_number: 5
+#          user_column: 'D'
+#          column_offset: 'F'
+#          mark: "'+"
+      - name: Setup Go 1.24.3
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24.3'
+
+
+      - name: Build images
+        timeout-minutes: 10
+        run: docker compose build
+
+      - name: Run containers
+        timeout-minutes: 5
+        run: |
+          docker compose up -d
+          ./scripts/wait-script.sh
+        env:
+          WAIT_PORTS: 8080,8070,8060,8050
+
+
+      - name: Run Unit Tests
+        run: |
+          cd src/rating-system && go test ./internal/service/...
+          cd ../reservation-system && go test ./internal/service/...
+          cd ../library-system && go test ./internal/service/...
+
       - name: Run API Tests
         uses: matt-ball/newman-action@master
         with:
-          collection: <variant>/postman/collection.json
-          environment: <variant>/postman/environment.json
+          collection: v4/postman/collection.json
+          environment: v4/postman/environment.json
           delayRequest: 100
-          reporters: '[ "cli" ]'
+          reporters: '[ "cli"]'
+
 
       - uses: education/autograding@v1
         id: autograder
         continue-on-error: true
 
-      - name: Github auto grader mark
-        uses: Romanow/google-sheet-autograder-marker@v1.0
-        with:
-          google_token: ${{secrets.GOOGLE_API_KEY}}
-          sheet_id: "1xkgjUX6Qmk7rdJG-QPOToav-HWWtthJjnShIKnw3oIY"
-          homework_number: 5
-          user_column: 'D'
-          column_offset: 'F'
-          mark: "'+"
+      - name: Stop containers
+        if: always()
+        continue-on-error: true
+        run: docker compose down -v

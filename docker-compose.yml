@@ -35,7 +35,7 @@ services:
     build:
       context: ./src/library-system
       dockerfile: Dockerfile
-    image: library:latest
+#    image: library:latest
     container_name: library-service
     ports:
       - "8050:8050"
@@ -51,7 +51,7 @@ services:
     build:
       context: ./src/rating-system
       dockerfile: Dockerfile
-    image: rating:latest
+#    image: rating:latest
     container_name: rating-service
     ports:
       - "8060:8060"
@@ -67,7 +67,7 @@ services:
     build:
       context: ./src/reservation-system
       dockerfile: Dockerfile
-    image: reservation:latest
+#    image: reservation:latest
     container_name: reservation-service
     ports:
       - "8070:8070"
@@ -84,7 +84,7 @@ services:
       context: ./src/gateway-api
       dockerfile: Dockerfile
 
-    image: gateway:latest
+#    image: gateway:latest
     container_name: gateway-api
     ports:
       - "8080:8080"
@@ -98,6 +98,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
 #
 
 volumes:

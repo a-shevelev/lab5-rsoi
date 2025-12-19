@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 var (
@@ -27,12 +28,23 @@ func (h *RatingHandler) RegisterRoutes(rg *gin.RouterGroup) {
 }
 
 func (h *RatingHandler) GetRating(c *gin.Context) {
-	username := c.GetHeader("X-User-Name")
-	if username == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-Name header required"})
+	//username := c.GetHeader("X-User-Name")
+	//if username == "" {
+	//	c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-Name header required"})
+	//	return
+	//}
+	claimsRaw, exists := c.Get("claims")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "no claims found"})
 		return
 	}
 
+	claims := claimsRaw.(jwt.MapClaims)
+	username, ok := claims["sub"].(string)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "sub claim missing"})
+		return
+	}
 	rating, err := h.Service.GetRating(username)
 	if err != nil {
 		if errors.Is(err, ext.ServiceUnavailableError) {

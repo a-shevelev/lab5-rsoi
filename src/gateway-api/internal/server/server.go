@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"gateway-api/internal/auth"
 	"gateway-api/internal/client"
 	"gateway-api/internal/dto"
 	handlers "gateway-api/internal/handlers/http/v1"
@@ -64,7 +65,10 @@ func (s *Server) initRoutes() error {
 		c.Status(http.StatusOK)
 	})
 
+	authMiddleware := auth.AuthMiddleware()
+
 	v1 := s.GinRouter.Group("/api/v1")
+	v1.Use(authMiddleware)
 
 	libService := service.NewLibraryService(s.LibraryClient)
 	libHandler := handlers.NewLibraryHandler(libService)

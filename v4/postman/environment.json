@@ -1,35 +1,35 @@
 {
   "id": "acc90f86-88ad-444e-924e-6f48f6ee7711",
-  "name": "[rsoi][lab5] Flight Service",
+  "name": "[rsoi][lab5] Library Service",
   "values": [
     {
       "key": "serviceUrl",
-      "value": "",
+      "value": "http://localhost:8080",
       "enabled": true
     },
     {
       "key": "identityProviderUrl",
-      "value": "",
+      "value": "https://sanchiko.eu.auth0.com",
       "enabled": true
     },
     {
       "key": "username",
-      "value": "",
+      "value": "test@examle.com",
       "enabled": true
     },
     {
       "key": "password",
-      "value": "",
+      "value": "Test1234",
       "enabled": true
     },
     {
       "key": "clientId",
-      "value": "",
+      "value": "JRGEpsMquGLa2rHeRqFktiGvuRUN2grT",
       "enabled": true
     },
     {
       "key": "clientSecret",
-      "value": "",
+      "value": "FlQvmrKWCDOT0N8dxASI7RLCtM7swyxPcPtqXsJkHlKwdHyQRj7UDUJqwcN7oHNA",
       "enabled": true
     }
   ],

@@ -3,7 +3,9 @@ module gateway-api
 go 1.24
 
 require (
+	github.com/MicahParks/keyfunc v1.9.0
 	github.com/gin-gonic/gin v1.11.0
+	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/streadway/amqp v1.1.0
