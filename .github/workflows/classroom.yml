@@ -22,29 +22,29 @@ jobs:
           username: oauth
           password: ${{ secrets.YC_OAUTH_TOKEN }}
 
-      - name: Build & Push Docker images
-        run: |
-          CR_ID=${{ secrets.YC_CR_ID }}
-
-          echo "Building Library Service..."
-          docker build -t cr.yandex/$CR_ID/library-service:latest \
-            -f ./src/library-system/Dockerfile ./src/library-system
-          docker push cr.yandex/$CR_ID/library-service:latest
-
-          echo "Building Rating Service..."
-          docker build -t cr.yandex/$CR_ID/rating-service:latest \
-            -f ./src/rating-system/Dockerfile ./src/rating-system
-          docker push cr.yandex/$CR_ID/rating-service:latest
-
-          echo "Building Reservation Service..."
-          docker build -t cr.yandex/$CR_ID/reservation-service:latest \
-            -f ./src/reservation-system/Dockerfile ./src/reservation-system
-          docker push cr.yandex/$CR_ID/reservation-service:latest
-
-          echo "Building Gateway API..."
-          docker build -t cr.yandex/$CR_ID/gateway-api:latest \
-            -f ./src/gateway-api/Dockerfile ./src/gateway-api
-          docker push cr.yandex/$CR_ID/gateway-api:latest
+#      - name: Build & Push Docker images
+#        run: |
+#          CR_ID=${{ secrets.YC_CR_ID }}
+#
+#          echo "Building Library Service..."
+#          docker build -t cr.yandex/$CR_ID/library-service:latest \
+#            -f ./src/library-system/Dockerfile ./src/library-system
+#          docker push cr.yandex/$CR_ID/library-service:latest
+#
+#          echo "Building Rating Service..."
+#          docker build -t cr.yandex/$CR_ID/rating-service:latest \
+#            -f ./src/rating-system/Dockerfile ./src/rating-system
+#          docker push cr.yandex/$CR_ID/rating-service:latest
+#
+#          echo "Building Reservation Service..."
+#          docker build -t cr.yandex/$CR_ID/reservation-service:latest \
+#            -f ./src/reservation-system/Dockerfile ./src/reservation-system
+#          docker push cr.yandex/$CR_ID/reservation-service:latest
+#
+#          echo "Building Gateway API..."
+#          docker build -t cr.yandex/$CR_ID/gateway-api:latest \
+#            -f ./src/gateway-api/Dockerfile ./src/gateway-api
+#          docker push cr.yandex/$CR_ID/gateway-api:latest
 
       - name: Install Yandex CLI
         run: |
