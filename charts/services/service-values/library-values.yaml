@@ -1,0 +1,33 @@
+fullnameOverride: library-service
+
+image:
+  repository: ""
+  tag: "latest"
+
+service:
+  port: 8050
+
+env:
+  - name: DB_CONN_STRING
+    value: "postgres://postgres:postgres@postgres/libraries"
+  - name: SERVER_PORT
+    value: "8050"
+
+
+livenessProbe:
+  httpGet:
+    path: /manage/health
+    port: 8050
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /manage/health
+    port: 8050
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 4
