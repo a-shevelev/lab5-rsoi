@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"lab2-rsoi/library-system/internal/auth"
 	handlers "lab2-rsoi/library-system/internal/handlers/http/v1"
 	"lab2-rsoi/library-system/internal/repo"
 	"lab2-rsoi/library-system/internal/service"
@@ -47,7 +48,11 @@ func (s *Server) initRoutes() error {
 	//	log.Info("Docs routes initialization failed")
 	//}
 
+	authMiddleware := auth.AuthMiddleware()
+
 	v1 := s.GinRouter.Group("/api/v1")
+
+	v1.Use(authMiddleware)
 
 	library := repo.NewLibraryRepo(s.DB)
 	libraryService := service.NewLibraryService(library)

@@ -48,20 +48,20 @@ func NewReservationService(
 	}
 }
 
-func (s *ReservationService) Get(username string) ([]dto.ReservationFullResponse, error) {
-	raw, err := s.ClientRes.Get(username)
+func (s *ReservationService) Get(username string, token string) ([]dto.ReservationFullResponse, error) {
+	raw, err := s.ClientRes.Get(username, token)
 	if err != nil {
 		return nil, err
 	}
 
 	result := make([]dto.ReservationFullResponse, 0, len(raw))
 	for _, r := range raw {
-		book, err := s.ClientLib.GetBookByUID(r.BookUID)
+		book, err := s.ClientLib.GetBookByUID(r.BookUID, token)
 		if err != nil {
 			return nil, err
 		}
 
-		lib, err := s.ClientLib.GetLibraryByUID(r.LibraryUID)
+		lib, err := s.ClientLib.GetLibraryByUID(r.LibraryUID, token)
 		if err != nil {
 			return nil, err
 		}
@@ -72,21 +72,21 @@ func (s *ReservationService) Get(username string) ([]dto.ReservationFullResponse
 	return result, nil
 }
 
-func (s *ReservationService) CreateReservation(username string, req dto.CreateReservationRequest) (*dto.ReservationFullResponse, error) {
+func (s *ReservationService) CreateReservation(username string, token string, req dto.CreateReservationRequest) (*dto.ReservationFullResponse, error) {
 
-	resCount, err := s.ClientRes.GetCurrentAmount(username)
+	resCount, err := s.ClientRes.GetCurrentAmount(username, token)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get current amount: %s", err)
 	}
 
-	starsCount, err := s.ClientRate.Get(username)
+	starsCount, err := s.ClientRate.Get(username, token)
 	if err != nil {
 		if errors.Is(err, ext.ServiceUnavailableError) {
 			return nil, ext.RatingServiceUnavailableError
 		}
 		return nil, fmt.Errorf("failed to get rating: %s", err)
 	}
-	books, err := s.ClientLib.GetBookByUID(req.BookUID)
+	books, err := s.ClientLib.GetBookByUID(req.BookUID, token)
 	if err != nil {
 		if errors.Is(err, ext.ServiceUnavailableError) {
 			return nil, ext.LibraryServiceUnavailableError
@@ -99,28 +99,28 @@ func (s *ReservationService) CreateReservation(username string, req dto.CreateRe
 	if resCount >= starsCount.Stars {
 		return nil, fmt.Errorf("You rented maximum amount of books", resCount)
 	}
-	result, err := s.ClientRes.Create(username, req)
+	result, err := s.ClientRes.Create(username, token, req)
 	if err != nil {
 		if errors.Is(err, ext.ServiceUnavailableError) {
 			return nil, ext.ReservationServiceUnavailableError
 		}
 		return nil, fmt.Errorf("failed to create reservation: %s", err)
 	}
-	err = s.ClientLib.UpdateBookCount(result.LibraryUID, result.BookUID, -1)
+	err = s.ClientLib.UpdateBookCount(result.LibraryUID, result.BookUID, -1, token)
 	if err != nil {
 
 		return nil, fmt.Errorf("failed to update book count: %s", err)
 	}
 
-	book, err := s.ClientLib.GetBookByUID(result.BookUID)
+	book, err := s.ClientLib.GetBookByUID(result.BookUID, token)
 	if err != nil {
-		err := s.ClientRes.DeleteReservation(result.ReservationUID)
+		err := s.ClientRes.DeleteReservation(result.ReservationUID, token)
 		if err != nil {
 			return nil, fmt.Errorf("failed to delete book: %s", err)
 		}
 		return nil, err
 	}
-	lib, err := s.ClientLib.GetLibraryByUID(result.LibraryUID)
+	lib, err := s.ClientLib.GetLibraryByUID(result.LibraryUID, token)
 	if err != nil {
 		return nil, err
 	}
@@ -132,46 +132,48 @@ func (s *ReservationService) CreateReservation(username string, req dto.CreateRe
 func (s *ReservationService) ReturnBook_(
 	username string,
 	req dto.ReturnReservationRequest,
-	reservationUID string) error {
+	reservationUID string,
+	token string,
+) error {
 	rate := 1
-	err := s.ClientRes.UpdateStatus(reservationUID, req.Date)
+	err := s.ClientRes.UpdateStatus(reservationUID, req.Date, token)
 	if err != nil {
 		return fmt.Errorf("failed to update status: %s", err)
 	}
-	res, err := s.ClientRes.GetByUID(reservationUID)
+	res, err := s.ClientRes.GetByUID(reservationUID, token)
 	if err != nil {
 		return fmt.Errorf("failed to get reservation by uid: %s", err)
 	}
 	if res.Status == "EXPIRED" {
 		rate = -10
 	}
-	book, err := s.ClientLib.GetBookByUID(res.BookUID)
+	book, err := s.ClientLib.GetBookByUID(res.BookUID, token)
 	if err != nil {
 		return fmt.Errorf("failed to get book by uid: %s", err)
 	}
 	if book.Condition != req.Condition {
 		rate = -10
-		err = s.ClientLib.UpdateBookCondition(res.BookUID, req.Condition)
+		err = s.ClientLib.UpdateBookCondition(res.BookUID, req.Condition, token)
 		if err != nil {
 			return fmt.Errorf("failed to update book condition: %s", err)
 		}
 	}
 
-	err = s.ClientLib.UpdateBookCount(res.LibraryUID, res.BookUID, 1)
+	err = s.ClientLib.UpdateBookCount(res.LibraryUID, res.BookUID, 1, token)
 	if err != nil {
 		return fmt.Errorf("failed to update book count: %s", err)
 	}
-	err = s.ClientRate.Update(username, rate)
+	err = s.ClientRate.Update(username, rate, token)
 	if err != nil {
 		return fmt.Errorf("failed to update rate: %s", err)
 	}
 	return nil
 }
 
-func (s *ReservationService) ReturnBook(username string, req dto.ReturnReservationRequest, reservationUID string) error {
+func (s *ReservationService) ReturnBook(username string, token string, req dto.ReturnReservationRequest, reservationUID string) error {
 	rate := 1
 
-	if err := s.ClientRes.UpdateStatus(reservationUID, req.Date); err != nil {
+	if err := s.ClientRes.UpdateStatus(reservationUID, req.Date, token); err != nil {
 		if errors.Is(err, ext.ServiceUnavailableError) {
 			evt := dto.ReturnRetryEvent{
 				Username:       username,
@@ -185,7 +187,7 @@ func (s *ReservationService) ReturnBook(username string, req dto.ReturnReservati
 		return fmt.Errorf("failed to update reservation status: %w", err)
 	}
 
-	res, err := s.ClientRes.GetByUID(reservationUID)
+	res, err := s.ClientRes.GetByUID(reservationUID, token)
 	if err != nil {
 		if errors.Is(err, ext.ServiceUnavailableError) {
 			evt := dto.ReturnRetryEvent{
@@ -205,7 +207,7 @@ func (s *ReservationService) ReturnBook(username string, req dto.ReturnReservati
 		rate = -10
 	}
 
-	if err := s.ClientLib.UpdateBookCount(res.LibraryUID, res.BookUID, +1); err != nil {
+	if err := s.ClientLib.UpdateBookCount(res.LibraryUID, res.BookUID, +1, token); err != nil {
 		if errors.Is(err, ext.ServiceUnavailableError) {
 			evt := dto.ReturnRetryEvent{
 				Username:       username,
@@ -221,13 +223,13 @@ func (s *ReservationService) ReturnBook(username string, req dto.ReturnReservati
 		return fmt.Errorf("failed to update book count: %w", err)
 	}
 
-	book, err := s.ClientLib.GetBookByUID(res.BookUID)
+	book, err := s.ClientLib.GetBookByUID(res.BookUID, token)
 	if err != nil {
 		return fmt.Errorf("failed to get book by uid: %s", err)
 	}
 
 	if req.Condition != "" && req.Condition != book.Condition {
-		if err := s.ClientLib.UpdateBookCondition(res.BookUID, req.Condition); err != nil {
+		if err := s.ClientLib.UpdateBookCondition(res.BookUID, req.Condition, token); err != nil {
 			if errors.Is(err, ext.ServiceUnavailableError) {
 				evt := dto.ReturnRetryEvent{
 					Username:       username,
@@ -244,7 +246,7 @@ func (s *ReservationService) ReturnBook(username string, req dto.ReturnReservati
 		}
 	}
 
-	if err := s.ClientRate.Update(username, rate); err != nil {
+	if err := s.ClientRate.Update(username, rate, token); err != nil {
 		if errors.Is(err, ext.ServiceUnavailableError) {
 			evt := dto.ReturnRetryEvent{
 				Username:       username,

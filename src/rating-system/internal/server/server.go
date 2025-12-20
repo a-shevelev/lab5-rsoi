@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"net/http"
+	"rating-system/internal/auth"
 
 	"rating-system/internal/handlers/http/v1"
 	"rating-system/internal/repo"
@@ -44,7 +45,9 @@ func (s *Server) initRoutes() error {
 		c.Status(http.StatusOK)
 	})
 
+	authMiddleware := auth.AuthMiddleware()
 	v1 := s.GinRouter.Group("/api/v1")
+	v1.Use(authMiddleware)
 
 	rateRepo := repo.NewRatingRepo(s.DB)
 	rateService := service.NewRatingService(rateRepo)

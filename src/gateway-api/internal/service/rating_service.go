@@ -13,6 +13,6 @@ func NewRatingService(client *client.Rating) *RatingService {
 	return &RatingService{Client: client}
 }
 
-func (s *RatingService) GetRating(username string) (*dto.UserRatingResponse, error) {
-	return s.Client.Get(username)
+func (s *RatingService) GetRating(username string, token string) (*dto.UserRatingResponse, error) {
+	return s.Client.Get(username, token)
 }

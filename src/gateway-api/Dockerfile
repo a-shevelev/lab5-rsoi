@@ -1,5 +1,4 @@
 FROM golang:1.24 AS build
-#FROM git.pandora.pri:80/base/golang-sdk:1.24.2-alpine3.21 AS build
 
 WORKDIR /app
 

@@ -34,7 +34,7 @@ func (c *Library) isHealthy() bool {
 	return resp.StatusCode == http.StatusOK
 }
 
-func (c *Library) GetLibraries(city string, page, size int) (*dto.LibraryPaginationResponse, error) {
+func (c *Library) GetLibraries(city string, page, size int, token string) (*dto.LibraryPaginationResponse, error) {
 	action := func() (*dto.LibraryPaginationResponse, error) {
 		u, _ := url.Parse(fmt.Sprintf("%s/api/v1/libraries", c.BaseURL))
 		q := u.Query()
@@ -47,7 +47,14 @@ func (c *Library) GetLibraries(city string, page, size int) (*dto.LibraryPaginat
 		}
 		u.RawQuery = q.Encode()
 
-		resp, err := c.HTTPClient.Get(u.String())
+		req, err := http.NewRequest(http.MethodGet, u.String(), nil)
+		if err != nil {
+			return nil, err
+		}
+
+		req.Header.Set("Authorization", token)
+
+		resp, err := c.HTTPClient.Do(req)
 		if err != nil {
 			return nil, err
 		}
@@ -67,7 +74,7 @@ func (c *Library) GetLibraries(city string, page, size int) (*dto.LibraryPaginat
 	return circuit.WithCircuitBreaker(c.GetBreaker, action, fallback, c.isHealthy)
 }
 
-func (c *Library) GetLibraryBooks(libraryUid string, page, size int, showAll bool) (*dto.LibraryBookPaginationResponse, error) {
+func (c *Library) GetLibraryBooks(libraryUid string, page, size int, showAll bool, token string) (*dto.LibraryBookPaginationResponse, error) {
 	action := func() (*dto.LibraryBookPaginationResponse, error) {
 		u, _ := url.Parse(fmt.Sprintf("%s/api/v1/libraries/%s/books", c.BaseURL, libraryUid))
 		q := u.Query()
@@ -82,7 +89,14 @@ func (c *Library) GetLibraryBooks(libraryUid string, page, size int, showAll boo
 		}
 		u.RawQuery = q.Encode()
 
-		resp, err := c.HTTPClient.Get(u.String())
+		req, err := http.NewRequest(http.MethodGet, u.String(), nil)
+		if err != nil {
+			return nil, err
+		}
+
+		req.Header.Set("Authorization", token)
+
+		resp, err := c.HTTPClient.Do(req)
 		if err != nil {
 			return nil, err
 		}
@@ -103,8 +117,16 @@ func (c *Library) GetLibraryBooks(libraryUid string, page, size int, showAll boo
 
 }
 
-func (c *Library) GetLibraryByUID(libraryUid string) (*dto.LibraryResponse, error) {
-	resp, err := c.HTTPClient.Get(fmt.Sprintf("%s/api/v1/libraries/%s/", c.BaseURL, libraryUid))
+func (c *Library) GetLibraryByUID(libraryUid string, token string) (*dto.LibraryResponse, error) {
+
+	req, _ := http.NewRequest(
+		http.MethodGet,
+		fmt.Sprintf("%s/api/v1/libraries/%s/", c.BaseURL, libraryUid),
+		nil,
+	)
+	req.Header.Set("Authorization", token)
+
+	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -117,8 +139,16 @@ func (c *Library) GetLibraryByUID(libraryUid string) (*dto.LibraryResponse, erro
 	return &result, nil
 }
 
-func (c *Library) GetBookByUID(bookUid string) (*dto.BookResponse, error) {
-	resp, err := c.HTTPClient.Get(fmt.Sprintf("%s/api/v1/books/%s/", c.BaseURL, bookUid))
+func (c *Library) GetBookByUID(bookUid string, token string) (*dto.BookResponse, error) {
+
+	req, _ := http.NewRequest(
+		http.MethodGet,
+		fmt.Sprintf("%s/api/v1/books/%s/", c.BaseURL, bookUid),
+		nil,
+	)
+	req.Header.Set("Authorization", token)
+
+	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -131,10 +161,11 @@ func (c *Library) GetBookByUID(bookUid string) (*dto.BookResponse, error) {
 	return &result, nil
 }
 
-func (c *Library) UpdateBookCondition(bookUid string, condition string) error {
+func (c *Library) UpdateBookCondition(bookUid string, condition string, token string) error {
 	reqBody, _ := json.Marshal(map[string]string{"condition": condition})
 	req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("%s/api/v1/books/%s/condition", c.BaseURL, bookUid), bytes.NewBuffer(reqBody))
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", token)
 
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
@@ -148,12 +179,13 @@ func (c *Library) UpdateBookCondition(bookUid string, condition string) error {
 	return nil
 }
 
-func (c *Library) UpdateBookCount(libraryUid, bookUid string, delta int) error {
+func (c *Library) UpdateBookCount(libraryUid, bookUid string, delta int, token string) error {
 	req, _ := http.NewRequest(
 		http.MethodPut,
 		fmt.Sprintf("%s/api/v1/library/%s/books/%s/count/%d/", c.BaseURL, libraryUid, bookUid, delta),
 		nil,
 	)
+	req.Header.Set("Authorization", token)
 
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {

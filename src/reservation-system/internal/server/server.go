@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"net/http"
+	"reservation-system/internal/auth"
 	handlers "reservation-system/internal/handlers/http/v1"
 	"reservation-system/internal/repo"
 	"reservation-system/internal/service"
@@ -44,7 +45,11 @@ func (s *Server) initRoutes() error {
 		c.Status(http.StatusOK)
 	})
 
+	authMiddleware := auth.AuthMiddleware()
+
 	v1 := s.GinRouter.Group("/api/v1")
+
+	v1.Use(authMiddleware)
 
 	reservation := repo.NewReservationRepo(s.DB)
 	resService := service.NewReservationService(reservation)

@@ -28,7 +28,19 @@ func (h *LibraryHandler) GetLibraries(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "0"))
 	size, _ := strconv.Atoi(c.DefaultQuery("size", "10"))
 
-	res, err := h.Service.GetLibraries(city, page, size)
+	token, exists := c.Get("token")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "no claims found"})
+		return
+	}
+
+	tokenStr, ok := token.(string)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+		return
+	}
+
+	res, err := h.Service.GetLibraries(city, page, size, tokenStr)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -43,7 +55,19 @@ func (h *LibraryHandler) GetLibraryBooks(c *gin.Context) {
 	size, _ := strconv.Atoi(c.DefaultQuery("size", "10"))
 	showAll := c.DefaultQuery("showAll", "false") == "true"
 
-	res, err := h.Service.GetLibraryBooks(libraryUid, page, size, showAll)
+	token, exists := c.Get("token")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "no claims found"})
+		return
+	}
+
+	tokenStr, ok := token.(string)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+		return
+	}
+
+	res, err := h.Service.GetLibraryBooks(libraryUid, page, size, showAll, tokenStr)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

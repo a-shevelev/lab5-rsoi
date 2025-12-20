@@ -45,7 +45,19 @@ func (h *RatingHandler) GetRating(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "sub claim missing"})
 		return
 	}
-	rating, err := h.Service.GetRating(username)
+	token, exists := c.Get("token")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "no claims found"})
+		return
+	}
+
+	tokenStr, ok := token.(string)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+		return
+	}
+
+	rating, err := h.Service.GetRating(username, tokenStr)
 	if err != nil {
 		if errors.Is(err, ext.ServiceUnavailableError) {
 			c.JSON(http.StatusServiceUnavailable, gin.H{"message": RatingServiceUnavailable.Error()})

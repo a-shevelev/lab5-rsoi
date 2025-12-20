@@ -13,10 +13,10 @@ func NewLibraryService(c *client.Library) *LibraryService {
 	return &LibraryService{Client: c}
 }
 
-func (s *LibraryService) GetLibraries(city string, page, size int) (*dto.LibraryPaginationResponse, error) {
-	return s.Client.GetLibraries(city, page, size)
+func (s *LibraryService) GetLibraries(city string, page, size int, token string) (*dto.LibraryPaginationResponse, error) {
+	return s.Client.GetLibraries(city, page, size, token)
 }
 
-func (s *LibraryService) GetLibraryBooks(libraryUid string, page, size int, showAll bool) (*dto.LibraryBookPaginationResponse, error) {
-	return s.Client.GetLibraryBooks(libraryUid, page, size, showAll)
+func (s *LibraryService) GetLibraryBooks(libraryUid string, page, size int, showAll bool, token string) (*dto.LibraryBookPaginationResponse, error) {
+	return s.Client.GetLibraryBooks(libraryUid, page, size, showAll, token)
 }

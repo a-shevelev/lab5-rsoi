@@ -41,6 +41,7 @@ func (h *LibraryHandler) GetLibraries(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	fmt.Println(req)
 
 	if req.City == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "city is required"})

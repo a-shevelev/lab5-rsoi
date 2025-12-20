@@ -46,7 +46,19 @@ func (h *ReservationHandler) GetReservations(c *gin.Context) {
 		return
 	}
 
-	reservations, err := h.Service.Get(username)
+	token, exists := c.Get("token")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "no claims found"})
+		return
+	}
+
+	tokenStr, ok := token.(string)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+		return
+	}
+
+	reservations, err := h.Service.Get(username, tokenStr)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -80,7 +92,19 @@ func (h *ReservationHandler) CreateReservation(c *gin.Context) {
 		return
 	}
 
-	reservation, err := h.Service.CreateReservation(username, req)
+	token, exists := c.Get("token")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "no claims found"})
+		return
+	}
+
+	tokenStr, ok := token.(string)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+		return
+	}
+
+	reservation, err := h.Service.CreateReservation(username, tokenStr, req)
 	if err != nil {
 		if errors.Is(err, ext.LibraryServiceUnavailableError) {
 			c.JSON(http.StatusServiceUnavailable, gin.H{"message": ext.LibraryServiceUnavailableError.Error()})
@@ -137,7 +161,19 @@ func (h *ReservationHandler) ReturnBook(c *gin.Context) {
 		return
 	}
 
-	err := h.Service.ReturnBook(username, req, reqURI.ReservationUID)
+	token, exists := c.Get("token")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "no claims found"})
+		return
+	}
+
+	tokenStr, ok := token.(string)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+		return
+	}
+
+	err := h.Service.ReturnBook(username, tokenStr, req, reqURI.ReservationUID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

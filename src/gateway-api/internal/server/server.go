@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"gateway-api/internal/auth"
 	"gateway-api/internal/client"
-	"gateway-api/internal/dto"
 	handlers "gateway-api/internal/handlers/http/v1"
-	"gateway-api/internal/rabbitmq"
 	"gateway-api/internal/service"
 	"net/http"
 
@@ -110,32 +108,44 @@ func (s *Server) initRoutes() error {
 		}
 	}
 
-	err := rabbitmq.RunRetryWorker(s.RmqChannel, s.reservationQueue, func(evt dto.ReturnRetryEvent) error {
-		return s.ReservationClient.UpdateStatus(evt.ReservationUID, evt.Date)
-	})
-	if err != nil {
-		return err
-	}
-
-	err = rabbitmq.RunRetryWorker(s.RmqChannel, s.libQueue, func(evt dto.ReturnRetryEvent) error {
-		if err := s.LibraryClient.UpdateBookCount(evt.LibraryUID, evt.BookUID, +1); err != nil {
-			return err
-		}
-		if evt.Condition != "" {
-			return s.LibraryClient.UpdateBookCondition(evt.BookUID, evt.Condition)
-		}
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-
-	err = rabbitmq.RunRetryWorker(s.RmqChannel, s.ratingQueue, func(evt dto.ReturnRetryEvent) error {
-		return s.RatingClient.Update(evt.Username, evt.RateDelta)
-	})
-	if err != nil {
-		return err
-	}
+	//token, exists := c.Get("token")
+	//if !exists {
+	//	c.JSON(http.StatusUnauthorized, gin.H{"error": "no claims found"})
+	//	return
+	//}
+	//
+	//tokenStr, ok := token.(string)
+	//if !ok {
+	//	c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+	//	return
+	//}
+	//
+	//err := rabbitmq.RunRetryWorker(s.RmqChannel, s.reservationQueue, func(evt dto.ReturnRetryEvent) error {
+	//	return s.ReservationClient.UpdateStatus(evt.ReservationUID, evt.Date)
+	//})
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//err = rabbitmq.RunRetryWorker(s.RmqChannel, s.libQueue, func(evt dto.ReturnRetryEvent) error {
+	//	if err := s.LibraryClient.UpdateBookCount(evt.LibraryUID, evt.BookUID, +1); err != nil {
+	//		return err
+	//	}
+	//	if evt.Condition != "" {
+	//		return s.LibraryClient.UpdateBookCondition(evt.BookUID, evt.Condition)
+	//	}
+	//	return nil
+	//})
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//err = rabbitmq.RunRetryWorker(s.RmqChannel, s.ratingQueue, func(evt dto.ReturnRetryEvent) error {
+	//	return s.RatingClient.Update(evt.Username, evt.RateDelta)
+	//})
+	//if err != nil {
+	//	return err
+	//}
 
 	return nil
 }

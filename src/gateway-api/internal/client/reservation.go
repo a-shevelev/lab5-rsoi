@@ -33,13 +33,14 @@ func (c *Reservation) isHealthy() bool {
 	return resp.StatusCode == http.StatusOK
 }
 
-func (c *Reservation) Get(username string) ([]dto.ReservationResponse, error) {
+func (c *Reservation) Get(username string, token string) ([]dto.ReservationResponse, error) {
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/v1/reservation", c.BaseURL), nil)
 	if err != nil {
 		return nil, err
 	}
 
 	req.Header.Set("X-User-Name", username)
+	req.Header.Set("Authorization", token)
 
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
@@ -60,12 +61,14 @@ func (c *Reservation) Get(username string) ([]dto.ReservationResponse, error) {
 	return result, nil
 }
 
-func (c *Reservation) GetByUID(uid string) (*dto.ReservationResponse, error) {
+func (c *Reservation) GetByUID(uid string, token string) (*dto.ReservationResponse, error) {
 	req, err := http.NewRequest("GET",
 		fmt.Sprintf("%s/api/v1/reservation/%s", c.BaseURL, uid), nil)
 	if err != nil {
 		return nil, err
 	}
+
+	req.Header.Set("Authorization", token)
 
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
@@ -85,12 +88,14 @@ func (c *Reservation) GetByUID(uid string) (*dto.ReservationResponse, error) {
 	return &result, nil
 }
 
-func (c *Reservation) DeleteReservation(uid string) error {
+func (c *Reservation) DeleteReservation(uid string, token string) error {
 	req, err := http.NewRequest("GET",
 		fmt.Sprintf("%s/api/v1/reservation/%s", c.BaseURL, uid), nil)
 	if err != nil {
 		return err
 	}
+
+	req.Header.Set("Authorization", token)
 
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
@@ -105,12 +110,14 @@ func (c *Reservation) DeleteReservation(uid string) error {
 	return nil
 }
 
-func (c *Reservation) GetCurrentAmount(username string) (int, error) {
+func (c *Reservation) GetCurrentAmount(username string, token string) (int, error) {
 	req, err := http.NewRequest("GET",
 		fmt.Sprintf("%s/api/v1/reservation/amount", c.BaseURL), nil)
 	if err != nil {
 		return 0, err
 	}
+
+	req.Header.Set("Authorization", token)
 	req.Header.Set("X-User-Name", username)
 
 	resp, err := c.HTTPClient.Do(req)
@@ -133,7 +140,7 @@ func (c *Reservation) GetCurrentAmount(username string) (int, error) {
 	return payload.Amount, nil
 }
 
-func (c *Reservation) Create(username string, req dto.CreateReservationRequest) (*dto.ReservationResponse, error) {
+func (c *Reservation) Create(username string, token string, req dto.CreateReservationRequest) (*dto.ReservationResponse, error) {
 	action := func() (*dto.ReservationResponse, error) {
 		body, err := json.Marshal(&req)
 		if err != nil {
@@ -150,6 +157,7 @@ func (c *Reservation) Create(username string, req dto.CreateReservationRequest) 
 		}
 
 		httpReq.Header.Set("X-User-Name", username)
+		httpReq.Header.Set("Authorization", token)
 		httpReq.Header.Set("Content-Type", "application/json")
 
 		resp, err := c.HTTPClient.Do(httpReq)
@@ -178,7 +186,7 @@ func (c *Reservation) Create(username string, req dto.CreateReservationRequest) 
 
 }
 
-func (c *Reservation) UpdateStatus(uid string, date string) error {
+func (c *Reservation) UpdateStatus(uid string, date string, token string) error {
 	body, err := json.Marshal(map[string]string{"date": date})
 	if err != nil {
 		return err
@@ -193,6 +201,7 @@ func (c *Reservation) UpdateStatus(uid string, date string) error {
 		return err
 	}
 
+	req.Header.Set("Authorization", token)
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.HTTPClient.Do(req)

@@ -33,13 +33,14 @@ func (c *Rating) isHealthy() bool {
 	return resp.StatusCode == http.StatusOK
 }
 
-func (c *Rating) Get(username string) (*dto.UserRatingResponse, error) {
+func (c *Rating) Get(username string, token string) (*dto.UserRatingResponse, error) {
 	action := func() (*dto.UserRatingResponse, error) {
 		req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/v1/rating", c.BaseURL), nil)
 		if err != nil {
 			return nil, err
 		}
 		req.Header.Set("X-User-Name", username)
+		req.Header.Set("Authorization", token)
 
 		resp, err := c.HTTPClient.Do(req)
 		if err != nil {
@@ -67,7 +68,7 @@ func (c *Rating) Get(username string) (*dto.UserRatingResponse, error) {
 	return circuit.WithCircuitBreaker(c.GetBreaker, action, fallback, c.isHealthy)
 }
 
-func (c *Rating) Update(username string, stars int) error {
+func (c *Rating) Update(username string, stars int, token string) error {
 
 	if !c.isHealthy() {
 		return ext.ServiceUnavailableError
@@ -78,6 +79,7 @@ func (c *Rating) Update(username string, stars int) error {
 	}
 
 	req.Header.Set("X-User-Name", username)
+	req.Header.Set("Authorization", token)
 
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {

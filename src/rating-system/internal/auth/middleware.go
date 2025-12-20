@@ -54,8 +54,6 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("token", authHeader)
-
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
 			pretty, _ := json.MarshalIndent(claims, "", "  ")
 			fmt.Println(string(pretty))
